@@ -1,0 +1,8 @@
+
+{
+  "name": "Lupus in Fabula - Online AI",
+  "description": "A beautifully designed digital version of the classic social deduction game where you play against AI personalities managed by Gemini, acting as both Game Master and fellow villagers.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
