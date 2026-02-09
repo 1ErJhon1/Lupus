@@ -106,9 +106,14 @@ const App: React.FC = () => {
       deaths.push(avengerMark);
     }
 
-    const updatedPlayers = gameState.players.map(p => 
-      deaths.includes(p.id) ? { ...p, isAlive: false } : p
-    );
+    const usedPoison = Boolean(witchKill);
+    const updatedPlayers = gameState.players.map(p => {
+      const isAlive = deaths.includes(p.id) ? false : p.isAlive;
+      if (p.role === Role.WITCH && usedPoison) {
+        return { ...p, isAlive, hasPoison: false };
+      }
+      return deaths.includes(p.id) ? { ...p, isAlive } : { ...p, isAlive };
+    });
 
     const win = checkWinConditions(updatedPlayers);
     if (win) {
@@ -221,7 +226,7 @@ const App: React.FC = () => {
       if (active.role === Role.WEREWOLF) na.werewolfVotes[active.id] = targetId;
       if (active.role === Role.DOCTOR) na.doctorProtect = targetId;
       if (active.role === Role.SEER) na.seerCheck = targetId;
-      if (active.role === Role.WITCH) na.witchKill = targetId;
+      if (active.role === Role.WITCH && active.hasPoison) na.witchKill = targetId;
       if (active.role === Role.AVENGER) na.avengerMark = targetId;
       return { ...prev, nightActions: na };
     });
@@ -336,7 +341,7 @@ const App: React.FC = () => {
                      {currentPlayerNight.role === Role.WEREWOLF && "Designa l'agnello sacrificale."}
                      {currentPlayerNight.role === Role.DOCTOR && "Proteggi un'anima dai morsi."}
                      {currentPlayerNight.role === Role.SEER && "Interroga le tenebre."}
-                     {currentPlayerNight.role === Role.WITCH && "La pozione è nelle tue mani."}
+                     {currentPlayerNight.role === Role.WITCH && (currentPlayerNight.hasPoison ? "La pozione è nelle tue mani." : "La pozione è esaurita.")}
                      {currentPlayerNight.role === Role.AVENGER && "Segna chi porterai con te se dovessi morire."}
                      {(currentPlayerNight.role === Role.VILLAGER) && "Chiudi gli occhi e attendi l'alba."}
                    </p>
@@ -351,7 +356,7 @@ const App: React.FC = () => {
                    </div>
                  )}
 
-                 {!nightActionDone && [Role.WEREWOLF, Role.SEER, Role.DOCTOR, Role.WITCH, Role.AVENGER].includes(currentPlayerNight.role) ? (
+                 {!nightActionDone && [Role.WEREWOLF, Role.SEER, Role.DOCTOR, Role.WITCH, Role.AVENGER].includes(currentPlayerNight.role) && (currentPlayerNight.role !== Role.WITCH || currentPlayerNight.hasPoison) ? (
                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 px-2">
                      {gameState.players
                        .filter(p => p.isAlive)
@@ -386,6 +391,13 @@ const App: React.FC = () => {
                         <div className="mb-10 p-4 bg-red-900/10 rounded-2xl border border-red-600/20 shadow-xl">
                           <p className="text-[8px] text-zinc-600 uppercase mb-1 tracking-[0.2em] font-black">Bersaglio Segnato:</p>
                           <p className="text-xl font-bold text-red-500 heading-font">{gameState.players.find(p => p.id === gameState.nightActions.avengerMark)?.name}</p>
+                        </div>
+                     )}
+
+                     {currentPlayerNight.role === Role.WITCH && !currentPlayerNight.hasPoison && (
+                        <div className="mb-10 p-4 bg-purple-900/10 rounded-2xl border border-purple-600/20 shadow-xl">
+                          <p className="text-[8px] text-zinc-600 uppercase mb-1 tracking-[0.2em] font-black">Pozione:</p>
+                          <p className="text-xl font-bold text-purple-400 heading-font">Esaurita</p>
                         </div>
                      )}
 
